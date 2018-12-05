@@ -13,6 +13,17 @@ export interface Options {
     limit?: number,
     offset?: number,
 }
+/**
+ * 实例化的M方法
+ * @param ctx 
+ * @param Table 
+ */
+export function M(ctx: any | any, Table: string): Model {
+    return new Model(ctx, Table);
+}
+/**
+ * 模型类
+ */
 export default class Model {
     private _db: any;
     private _model: Sequelize.Sequelize | any;
