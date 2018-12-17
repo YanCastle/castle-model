@@ -41,18 +41,12 @@ export default class Model {
     public static parseWhere(where: Object) {
         var w: any = {};
         _.forOwn(where, (v, k) => {
-            if ("string" == typeof k) {
-                if (Op[k]) {
-                    if (v instanceof Array) {
-                        w[Op[k]] = v;
-                    } else if ('object' == typeof v) {
-                        w[Op[k]] = Model.parseWhere(v);
-                    } else
-                        w[Op[k]] = v;
-                } else {
-                    w[k] = v;
-                }
-            }
+            if (v instanceof Array) {
+                w[Op[k]] = v;
+            } else if ('object' == typeof v) {
+                w[k] = Model.parseWhere(v);
+            } else if (Op[k])
+                w[Op[k]] = v;
             else {
                 w[k] = v;
             }
@@ -139,7 +133,7 @@ export default class Model {
         if (this._options.group && this._options.group.length > 0) {
             config['group'] = this._options.group.join(',')
         }
-        if (this._operate == Operate.Select && !this._options.fields) {
+        if (this._operate == Operate.Select && this._options.fields.length == 0) {
             config.fields = Object.keys(this._ctx.config.getDbTableFields(this._table_name))
         }
         if (this.transaction) {
@@ -469,4 +463,63 @@ export default class Model {
             return More ? [] : ''
         }
     }
+}
+
+export const DbDataType = {
+    char: Sequelize.CHAR,
+    varchar: Sequelize.STRING,
+    double: Sequelize["DOUBLE PRECISION"],
+    float: Sequelize.FLOAT,
+    text: Sequelize.TEXT,
+    smallint: Sequelize.SMALLINT,
+    tinyint: Sequelize.TINYINT,
+    mediumint: Sequelize.MEDIUMINT,
+    int: Sequelize.INTEGER,
+    bigint: Sequelize.BIGINT,
+    decimal: Sequelize.DECIMAL,
+    boolean: Sequelize.BOOLEAN,
+    enum: Sequelize.ENUM,
+    datetime: Sequelize.DATE,
+    timestamp: Sequelize.TIME,
+
+}
+export const DbOp = {
+    eq: Sequelize.Op.eq,
+    ne: Sequelize.Op.ne,
+    neq: Sequelize.Op.ne,
+    gte: Sequelize.Op.gte,
+    gt: Sequelize.Op.gt,
+    lte: Sequelize.Op.lte,
+    lt: Sequelize.Op.lt,
+    not: Sequelize.Op.not,
+    is: Sequelize.Op.is,
+    in: Sequelize.Op.in,
+    notIn: Sequelize.Op.notIn,
+    "not in": Sequelize.Op.notIn,
+    like: Sequelize.Op.like,
+    notLike: Sequelize.Op.notLike,
+    iLike: Sequelize.Op.iLike,
+    notILike: Sequelize.Op.notILike,
+    regexp: Sequelize.Op.regexp,
+    notRegexp: Sequelize.Op.notRegexp,
+    iRegexp: Sequelize.Op.iRegexp,
+    notIRegexp: Sequelize.Op.notIRegexp,
+    between: Sequelize.Op.between,
+    notBetween: Sequelize.Op.notBetween,
+    overlap: Sequelize.Op.overlap,
+    contains: Sequelize.Op.contains,
+    contained: Sequelize.Op.contained,
+    adjacent: Sequelize.Op.adjacent,
+    strictLeft: Sequelize.Op.strictLeft,
+    strictRight: Sequelize.Op.strictRight,
+    noExtendRight: Sequelize.Op.noExtendRight,
+    noExtendLeft: Sequelize.Op.noExtendLeft,
+    and: Sequelize.Op.and,
+    or: Sequelize.Op.or,
+    any: Sequelize.Op.any,
+    all: Sequelize.Op.all,
+    values: Sequelize.Op.values,
+    col: Sequelize.Op.col,
+    placeholder: Sequelize.Op.placeholder,
+    join: Sequelize.Op.join
 }
