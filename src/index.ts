@@ -372,20 +372,22 @@ export default class Model {
      * @param sql
      * @returns {any}
      */
-    public query(sql: string) {
-        return this._db.query(sql.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), {
+    public async query(sql: string) {
+        await this.getModel()
+        return await this._db.query(sql.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), {
             type: Sequelize.QueryTypes.SELECT
         });
     }
-    public exec(SQL: string, Type: Sequelize.QueryTypes | string) {
-        return this._db.query(SQL.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), Object.assign({ type: Type }, this.changeOptions))
+    public async exec(SQL: string, Type: Sequelize.QueryTypes | string) {
+        await this.getModel()
+        return await this._db.query(SQL.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), Object.assign({ type: Type }, this.changeOptions))
     }
     /**
      * 开启事物
      * @returns Sequelize.Transaction
      */
     public async startTrans(): Promise<Sequelize.Transaction> {
-        this.transaction = await this._ctx.config.db.transaction()
+        this.transaction = await this._ctx.config.startTrans()
         return this.transaction;
     }
     public setTrans(trans: Sequelize.Transaction) {
@@ -395,14 +397,14 @@ export default class Model {
     /**
      * 提交
      */
-    public commit() {
-        this.transaction.commit();
+    public async commit() {
+        await this._ctx.config.commit();
     }
     /**
      * 回滚
      */
-    public rollback() {
-        this.transaction.rollback();
+    public async rollback() {
+        await this._ctx.config.rollback();
     }
     /**
      * 清除查询条件，
