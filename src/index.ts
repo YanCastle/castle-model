@@ -136,8 +136,8 @@ export default class Model {
         if (this._operate == Operate.Select && this._options.fields.length == 0) {
             config.fields = Object.keys(this._ctx.config.getDbTableFields(this._table_name))
         }
-        if (this.transaction) {
-            config.transaction = this.transaction;
+        if (this._ctx.config.transaction) {
+            config.transaction = this._ctx.config.transaction;
         }
         return config;
     }
@@ -374,9 +374,9 @@ export default class Model {
      */
     public async query(sql: string) {
         await this.getModel()
-        return await this._db.query(sql.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), {
+        return await this._db.query(sql.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), Object.assign({
             type: Sequelize.QueryTypes.SELECT
-        });
+        }, this.changeOptions));
     }
     public async exec(SQL: string, Type: Sequelize.QueryTypes | string) {
         await this.getModel()
