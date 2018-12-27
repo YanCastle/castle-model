@@ -55,7 +55,7 @@ export default class Model {
     }
     get changeOptions() {
         let d: any = {};
-        if (this.transaction) { d.transaction = this.transaction }
+        if (this._ctx.config.transaction) { d.transaction = this._ctx.config.transaction }
         return d;
     }
     get config() {
