@@ -7,7 +7,8 @@
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
-    "README.md"
+    "README.md",
+    "yarn.lock"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
