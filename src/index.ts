@@ -1,6 +1,8 @@
 import * as _ from 'lodash';
 import * as Sequelize from "sequelize";
 export const Op: any = Sequelize.Op;
+export const Fn: any = Sequelize.fn;
+export const Col: any = Sequelize.col;
 export const QueryTypes = Sequelize.QueryTypes;
 export enum Operate {
     Select, Add, Delete, Save
@@ -12,6 +14,31 @@ export interface Options {
     order?: string[] | string,
     limit?: number,
     offset?: number,
+}
+/**
+ * 数据库支持的函数
+ */
+export enum DbFn {
+    SUM = 'SUM',
+    IF = 'IF',
+    AVG = 'AVG',
+    COUNT = 'COUNT',
+    MAX = 'MAX',
+    MIN = 'MIN'
+}
+export interface DbFnField {
+    /**
+     * 方法
+     */
+    fn?: DbFn,
+    /**
+     * 字段 
+     */
+    field: string,
+    /**
+     * 别名
+     */
+    as?: string
 }
 /**
  * 实例化的M方法
@@ -42,7 +69,11 @@ export default class Model {
         var w: any = {};
         _.forOwn(where, (v, k) => {
             if (v instanceof Array) {
-                w[Op[k]] = v;
+                if (k.substr(0, 1) == '$') {
+                    w[Fn(...[k.substr(0, 1), ...v])]
+                } else {
+                    w[Op[k]] = v;
+                }
             } else if ('object' == typeof v) {
                 w[k] = Model.parseWhere(v);
             } else if (Op[k])
@@ -225,11 +256,50 @@ export default class Model {
      * @param {boolean} exclude
      * @returns {Model.fields}
      */
-    public fields(fields: string | string[] | any, exclude = false) {
+    public fields(fields: string | string[] | DbFnField[] | any, exclude = false) {
         if (_.isArray(fields)) {
-            this._options.fields = _.concat(this._options.fields, fields)
+            this._options.fields.push(...fields)
         } else if (_.isString(fields)) {
-            this._options.fields = _.concat(this._options.fields, fields.split(','))
+            // this._options.fields = _.concat(this._options.fields, fields.split(','))
+            this._options.fields.push(...fields.split(','))
+        }
+        return this;
+    }
+    /**
+     * 求和
+     */
+    public async sum(field: string | DbFnField[], more: boolean = false) {
+        if ('string' == typeof field) {
+            this._options.fields.push([Fn('sum', Col(field)), field]);
+        } else if (_.isArray(field)) {
+            for (let i = 0; i < field.length; i++) {
+                let f = field[i];
+                if (!f.field) {
+                    throw new Error('Should Hav DbFnFied.field')
+                }
+                this._options.fields.push([Fn('sum', Col(f.field)), f.as ? f.as : f.field])
+            }
+        }
+        await this.getModel()
+        return await (more ? this.select() : this.find())
+    }
+    /**
+     * 注入方法
+     * @param fn 
+     * @param field 
+     * @param as 
+     */
+    public fnField(fn: DbFn, field: string | DbFnField, as: string) {
+        if ('string' == typeof field) {
+            this._options.fields.push([Fn(fn.toLowerCase(), Col(field)), field]);
+        } else if (_.isArray(field)) {
+            for (let i = 0; i < field.length; i++) {
+                let f = field[i];
+                if (!f.field) {
+                    throw new Error('Should Hav DbFnFied.field')
+                }
+                this._options.fields.push([Fn(fn.toLowerCase(), Col(f.field)), f.as ? f.as : f.field])
+            }
         }
         return this;
     }
