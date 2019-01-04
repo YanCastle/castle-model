@@ -74,11 +74,15 @@ export default class Model {
                 } else {
                     w[Op[k]] = v;
                 }
-            } else if ('object' == typeof v) {
-                w[k] = Model.parseWhere(v);
-            } else if (Op[k])
+            } else if (Op[k]) {
+                if ('object' == typeof v) {
+                    w[Op[k]] = Model.parseWhere(v);
+                }
                 w[Op[k]] = v;
-            else {
+            }
+            else if ('object' == typeof v) {
+                w[k] = Model.parseWhere(v);
+            } else {
                 w[k] = v;
             }
         });
