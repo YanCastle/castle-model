@@ -245,7 +245,7 @@ export default class Model {
         if (keys.length > 0) {
             let data: { [index: string]: Sequelize.literal } = {};
             for (let i = 0; i < keys.length; i++) {
-                data[keys[i]] = Sequelize.literal(`\`${keys[i]}\`${config[keys[i]] > 0 ? '+' : '-'}${config[keys[i]]}`)
+                data[keys[i]] = Sequelize.literal(`\`${keys[i]}\`${config[keys[i]] > 0 ? '+' : ''}${config[keys[i]]}`)
             }
             let d = await db.update(data, Object.assign({
                 where: this._parse_where(),
