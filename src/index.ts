@@ -41,6 +41,10 @@ export interface DbFnField {
     as?: string
 }
 /**
+ * 原始SQL
+ */
+export const rawSQL = Sequelize.literal
+/**
  * 实例化的M方法
  * @param ctx 
  * @param Table 
@@ -66,7 +70,7 @@ export default class Model {
     }
     private _operate: Operate = Operate.Select;
     public static parseWhere(where: Object) {
-        var w: any = {};
+        var w: any = where;
         _.forOwn(where, (v, k) => {
             if (v instanceof Array) {
                 if (k.substr(0, 1) == '$') {
@@ -74,14 +78,17 @@ export default class Model {
                 } else {
                     w[Op[k]] = v;
                 }
+                delete w[k]
             } else if (Op[k]) {
                 if ('object' == typeof v) {
                     w[Op[k]] = Model.parseWhere(v);
                 }
                 w[Op[k]] = v;
+                delete w[k]
             }
             else if ('object' == typeof v) {
                 w[k] = Model.parseWhere(v);
+                delete w[k]
             } else {
                 w[k] = v;
             }
@@ -437,12 +444,61 @@ export default class Model {
         if ((await this.getDbTableFields()).indexOf('DTime') > -1) {
             d = await this.save({ DTime: Date.now() })
         } else {
+            this._operate = Operate.Delete
             d = await (await this.getModel()).destroy(Object.assign({
                 where: this._parse_where(),
             }, this.changeOptions))
         }
         this._clean();
         return d;
+    }
+    /**
+     * 批量保存操作
+     * @param config 
+     */
+    public async caseSave(config: {
+        field: { save: string, case: string },
+        data: { [index: string]: Sequelize.literal | string | number },
+        limit?: number
+    }[]) {
+        let Save: any = {};
+        let Where: any = {};
+        for (let i = 0; i < config.length; i++) {
+            let { raw, where } = this._parse_case_save_config(config[i]);
+            if (Where[config[i].field.case]) {
+                Where[config[i].field.case] = Object.assign(Where[config[i].field.case], where)
+            } else {
+                Where[config[i].field.case] = where;
+            }
+            Save[config[i].field.save] = Sequelize.literal(raw);
+        }
+        _.forOwn(Where, (v, k) => {
+            Where[k] = { [Sequelize.Op.in]: _.uniq(v) }
+        })
+        return await this.where(Where).save(Save);
+    }
+    /**
+     * 解析生成caseSave数据 
+     */
+    protected _parse_case_save_config(config: {
+        field: { save: string, case: string },
+        data: { [index: string]: Sequelize.literal | string | number },
+        limit?: number
+    }) {
+        let CaseWhen: string[] = [];
+        let CaseIDs: string[] = [];
+        let keys = Object.keys(config.data);
+        for (let i = 0; i < keys.length; i++) {
+            let when = keys[i];
+            let value = config.data[when];
+            CaseWhen.push(`WHEN ${when} THEN ${value}`)
+            CaseIDs.push(when);
+        }
+        if (CaseIDs.length == 0) { throw new Error('NoCaseSaveData') }
+        return {
+            raw: `CASE ${config.field.case} ${CaseWhen.join(' ')} ELSE ${config.field.save} END`,
+            where: CaseIDs
+        }
     }
     /**
      * 调用save方法
