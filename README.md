@@ -1,5 +1,6 @@
 # CastleModel数据库操作类
 > 封装的Sequelize作为数据库操作底层，对Sequelize的部分操作进行了简化，语法结构类似于ThinkPHP3.2结构。
+需要依赖于 castle-config/castle-controller/sequelize，其它依赖请参见相关库的依然范围
 # 典型基础用法
 ```typescript
 //获取模型对象
