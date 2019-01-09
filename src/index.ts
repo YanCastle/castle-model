@@ -225,7 +225,7 @@ export default class Model {
      * 检测是否存在并在不存在的情况下添加数据
      * @param data
      */
-    public async addIfNotExist(data: Object, where = null) {
+    public async addIfNotExist(data: Object, where: Object | null = null) {
         let d = await this.where(where || data).find()
         if (_.isObject(d)) {
             //存在
@@ -314,9 +314,9 @@ export default class Model {
      * @param field 
      * @param as 
      */
-    public fnField(fn: DbFn, field: string | DbFnField, as: string) {
+    public fnField(fn: DbFn, field: string | DbFnField, as: string = '') {
         if ('string' == typeof field) {
-            this._options.fields.push([Fn(fn.toLowerCase(), Col(field)), field]);
+            this._options.fields.push([Fn(fn.toLowerCase(), Col(field)), as]);
         } else if (_.isArray(field)) {
             for (let i = 0; i < field.length; i++) {
                 let f = field[i];
@@ -430,8 +430,8 @@ export default class Model {
         return this;
     }
 
-    public group(fields: string[]) {
-        this._options.group = fields;
+    public group(fields: string[] | string) {
+        this._options.group = 'string' == typeof fields ? fields.split(',') : fields;
         return this;
     }
     /**
