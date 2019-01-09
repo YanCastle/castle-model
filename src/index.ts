@@ -88,7 +88,6 @@ export default class Model {
             }
             else if ('object' == typeof v) {
                 w[k] = Model.parseWhere(v);
-                delete w[k]
             } else {
                 w[k] = v;
             }
