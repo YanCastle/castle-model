@@ -177,6 +177,13 @@ export default class Model {
         return config;
     }
     /**
+     * 获取数据库定义的字段范围
+     * @param table 
+     */
+    async getDbTableFields(table: string = "") {
+        return Object.keys(await this._ctx.config.getDbTableFields(table || this._table_name))
+    }
+    /**
      * 设置表的字段，默认读取所有的
      * @param fields
      */
@@ -419,9 +426,14 @@ export default class Model {
      */
     public async del(): Promise<number> {
         this._operate = Operate.Delete
-        let d = await (await this.getModel()).destroy(Object.assign({
-            where: this._parse_where(),
-        }, this.changeOptions))
+        let d = 0;
+        if ((await this.getDbTableFields()).indexOf('DTime') > -1) {
+            d = await this.save({ DTime: Date.now() })
+        } else {
+            d = await (await this.getModel()).destroy(Object.assign({
+                where: this._parse_where(),
+            }, this.changeOptions))
+        }
         this._clean();
         return d;
     }
