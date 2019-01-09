@@ -229,21 +229,28 @@ export default class Model {
         }
     }
     /**
-     * 
+     * 自增或自减
      * @param config 
      */
-    public async setDec(config: { [index: string]: number }) {
-        if (Object.keys(config).length > 0) {
-
+    public async incOrDec(config: { [index: string]: number }) {
+        let db = await this.getModel()
+        this._operate = Operate.Save;
+        let keys = Object.keys(config);
+        if (keys.length > 0) {
+            let data: { [index: string]: Sequelize.literal } = {};
+            for (let i = 0; i < keys.length; i++) {
+                data[keys[i]] = Sequelize.literal(`\`${keys[i]}\`${config[keys[i]] > 0 ? '+' : '-'}${config[keys[i]]}`)
+            }
+            let d = await db.update(data, Object.assign({
+                where: this._parse_where(),
+                options: {
+                    returning: true
+                }
+            }, this.changeOptions));
+            this._clean();
+            return d[0];
         }
-        throw new Error('NotSupport')
-    }
-    /**
-     * 
-     * @param config 
-     */
-    public async setInc(config: { [index: string]: number }) {
-        throw new Error('NotSupport')
+        return 0;
     }
     /**
      * 设定Where条件
