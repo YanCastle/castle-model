@@ -139,8 +139,11 @@ export default class Model {
         if (this._options.fields.length == 0) {
             return this._ctx.config.getDbTableFields(this._table_name)
         }
-        return this._options.fields;
+        return this._options.fields instanceof Function ? this._options.fields(this._ctx) : this._options.fields;
     }
+    /**
+     * 解析排序Sort数据
+     */
     private _parse_order() {
         var order: string[] = [];
         if ("string" == typeof this._options.order) {
