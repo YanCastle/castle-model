@@ -49,8 +49,8 @@ export const rawSQL = Sequelize.literal
  * @param ctx 
  * @param Table 
  */
-export function M(ctx: any | any, Table: string): Model {
-    return new Model(ctx, Table);
+export function M(ctx: any | any, Table: string,Prefix:string=""): Model {
+    return new Model(ctx, Table,Prefix);
 }
 /**
  * 模型类
