@@ -49,8 +49,8 @@ export const rawSQL = Sequelize.literal
  * @param ctx 
  * @param Table 
  */
-export function M(ctx: any | any, Table: string,Prefix:string=""): Model {
-    return new Model(ctx, Table,Prefix);
+export function M(ctx: any | any, Table: string, Prefix: string = ""): Model {
+    return new Model(ctx, Table, Prefix);
 }
 /**
  * 模型类
@@ -621,7 +621,7 @@ export default class Model {
 export const DbDataType = {
     char: Sequelize.CHAR,
     varchar: Sequelize.STRING,
-    double: Sequelize["DOUBLE PRECISION"],
+    double: Sequelize.DOUBLE,
     float: Sequelize.FLOAT,
     text: Sequelize.TEXT,
     smallint: Sequelize.SMALLINT,
@@ -674,5 +674,5 @@ export const DbOp = {
     values: Sequelize.Op.values,
     col: Sequelize.Op.col,
     placeholder: Sequelize.Op.placeholder,
-    join: Sequelize.Op.join
+    // join: Sequelize.Op.
 }
