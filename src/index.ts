@@ -231,7 +231,7 @@ export default class Model {
         let d = await this.where(where || data).find()
         if (_.isObject(d)) {
             //存在
-            return true;
+            return d;
         } else {
             //不存在
             return await this.add(data)
