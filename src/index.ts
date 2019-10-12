@@ -53,6 +53,17 @@ export function M(ctx: any | any, Table: string, Prefix: string = ""): Model {
     return new Model(ctx, Table, Prefix);
 }
 /**
+ * 读取数据值
+ * @param value 
+ */
+function read_value(value: any) {
+    if (value instanceof Array && value[0].dataValues) {
+        return value.map((v) => v.dataValues)
+    }
+    if (value.dataValues) { return value.dataValues }
+    return value;
+}
+/**
  * 模型类
  */
 export default class Model {
@@ -346,18 +357,19 @@ export default class Model {
     public async select() {
         this._operate = Operate.Select
         let d = await (await this.getModel()).findAll(this._parse_config())
-        let data: any = [];
         this._clean();
-        d.forEach((v: any) => {
-            data.push(v.dataValues)
-        })
-        return data;
+        return read_value(d);
+        // let data: any = [];
+        // d.forEach((v: any) => {
+        //     data.push(v.dataValues)
+        // })
+        // return data;
     }
     public async add(data: Object) {
         this._operate = Operate.Add
         let d = await (await this.getModel()).create(data, this.changeOptions)
         this._clean();
-        return d.dataValues
+        return read_value(d);
     }
     public async data(data: Object) {
         (await this.getModel()).build(data)
@@ -383,11 +395,12 @@ export default class Model {
             fields: Object.keys(data[0])
         }, this.changeOptions))
         this._clean();
-        let ds: any = [];
-        d.forEach((v: any) => {
-            ds.push(v.dataValues)
-        })
-        return ds;
+        return read_value(d)
+        // let ds: any = [];
+        // d.forEach((v: any) => {
+        //     ds.push(v.dataValues)
+        // })
+        // return ds;
     }
     /**
      * 取数量
@@ -402,14 +415,14 @@ export default class Model {
     public async selectAndCount() {
         this._operate = Operate.Select
         let d = await (await this.getModel()).findAndCountAll(this._parse_config())
-        let data: any[] = [];
-        d.rows.forEach((v: any) => {
-            data.push(v.dataValues)
-        })
+        // let data: any[] = [];
+        // d.rows.forEach((v: any) => {
+        //     data.push(v.dataValues)
+        // })
         this._clean();
         return {
             count: d.count,
-            rows: data
+            rows: read_value(d)
         };
     }
     /**
