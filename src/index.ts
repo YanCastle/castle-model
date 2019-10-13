@@ -422,7 +422,7 @@ export default class Model {
         this._clean();
         return {
             count: d.count,
-            rows: read_value(d)
+            rows: read_value(d.rows)
         };
     }
     /**
