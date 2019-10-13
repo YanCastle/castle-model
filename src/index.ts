@@ -57,7 +57,7 @@ export function M(ctx: any | any, Table: string, Prefix: string = ""): Model {
  * @param value 
  */
 function read_value(value: any) {
-    if (value instanceof Array && value[0].dataValues) {
+    if (value instanceof Array && value[0] && value[0].dataValues) {
         return value.map((v) => v.dataValues)
     }
     if (value.dataValues) { return value.dataValues }
