@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 import * as Sequelize from "sequelize";
+import { env } from 'process';
 export const Op: any = Sequelize.Op;
 export const Fn: any = Sequelize.fn;
 export const Col: any = Sequelize.col;
@@ -81,6 +82,9 @@ export default class Model {
     }
     private _operate: Operate = Operate.Select;
     public static parseWhere(where: Object) {
+        if (env.DB_DIALET == 'tablestore') {
+            return where;
+        }
         var w: any = where;
         _.forOwn(where, (v, k) => {
             if (v instanceof Array) {
