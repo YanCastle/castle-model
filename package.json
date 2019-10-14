@@ -32,6 +32,6 @@
   "devDependencies": {
     "@types/lodash": "*",
     "@types/node": "*",
-    "@types/sequelize": "*"
+    "@types/sequelize": "^4"
   }
 }
