@@ -464,9 +464,7 @@ export default class Model {
             d = await this.save({ DTime: Date.now() })
         } else {
             this._operate = Operate.Delete
-            d = await (await this.getModel()).destroy(Object.assign({
-                where: this._parse_where(),
-            }, this.changeOptions))
+            d = await (await this.getModel()).destroy(Object.assign(this._parse_config(), this.changeOptions))
         }
         this._clean();
         return d;
