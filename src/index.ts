@@ -112,6 +112,7 @@ export default class Model {
     get changeOptions() {
         let d: any = {};
         if (this._ctx.config.transaction) { d.transaction = this._ctx.config.transaction }
+        d._ctx = this._ctx;
         return d;
     }
     get config() {
