@@ -160,7 +160,9 @@ export default class Model {
             rs = this._options.fields instanceof Function ? this._options.fields(this._ctx) : this._options.fields;
         }
         if (this._options.exclude.length > 0) {
-            rs = _.difference(rs, this._options.exclude)
+            for (let x of this._options.exclude) {
+                delete rs[x];
+            }
         }
         return rs;
     }
