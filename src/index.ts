@@ -10,6 +10,7 @@ export enum Operate {
 }
 export interface Options {
     fields: any[],
+    exclude: string[],
     where: any,
     group: string[],
     order?: string[] | string,
@@ -75,7 +76,7 @@ export default class Model {
     private _table_name = "";
     public transaction: Sequelize.Transaction | any;
     private _options: Options = {
-        fields: [], where: {}, group: []
+        fields: [], where: {}, group: [], exclude: []
     };
     private _config = {
 
@@ -152,10 +153,16 @@ export default class Model {
      * @private
      */
     private _parse_fields() {
+        let rs = []
         if (this._options.fields.length == 0) {
-            return this._ctx.config.getDbTableFields(this._table_name)
+            rs = this._ctx.config.getDbTableFields(this._table_name)
+        } else {
+            rs = this._options.fields instanceof Function ? this._options.fields(this._ctx) : this._options.fields;
         }
-        return this._options.fields instanceof Function ? this._options.fields(this._ctx) : this._options.fields;
+        if (this._options.exclude.length > 0) {
+            rs = _.difference(rs, this._options.exclude)
+        }
+        return rs;
     }
     /**
      * 解析排序Sort数据
@@ -300,11 +307,16 @@ export default class Model {
      * @returns {Model.fields}
      */
     public fields(fields: string | string[] | DbFnField[] | any, exclude = false) {
+        let t = [];
         if (_.isArray(fields)) {
-            this._options.fields.push(...fields)
+            t = fields
         } else if (_.isString(fields)) {
-            // this._options.fields = _.concat(this._options.fields, fields.split(','))
-            this._options.fields.push(...fields.split(','))
+            t = fields.split(',')
+        }
+        if (!exclude) {
+            this._options.fields.push(...t);
+        } else {
+            this._options.exclude.push(...t);
         }
         return this;
     }
