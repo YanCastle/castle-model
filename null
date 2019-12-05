@@ -1,0 +1,4 @@
+node_modules/sequelize/types/lib/transaction.d.ts(33,14): error TS1086: An accessor cannot be declared in an ambient context.
+node_modules/sequelize/types/lib/transaction.d.ts(40,7): error TS1086: An accessor cannot be declared in an ambient context.
+node_modules/sequelize/types/lib/utils/validator-extras.d.ts(2,22): error TS7016: Could not find a declaration file for module 'validator'. '/Users/castle/Documents/Web/Github/castle-model/node_modules/validator/index.js' implicitly has an 'any' type.
+  Try `npm install @types/validator` if it exists or add a new declaration (.d.ts) file containing `declare module 'validator';`

@@ -82,6 +82,13 @@ export default class Model {
 
     }
     private _operate: Operate = Operate.Select;
+    private _getSql: boolean = false;
+    get true_table_name() { return this._true_table_name; }
+    get table_name() { return this._table_name; }
+    sql(sql: boolean) {
+        this._getSql = sql;
+        return this;
+    }
     public static parseWhere(where: Object) {
         if (env.DB_DIALET == 'tablestore') {
             return where;
@@ -187,7 +194,7 @@ export default class Model {
      * @private
      */
     private _parse_config() {
-        let config: any = {};
+        let config: any = { raw: true };
         config['attributes'] = this._parse_fields();
         config['where'] = this._parse_where();
         if (this._options.order) {
@@ -232,7 +239,7 @@ export default class Model {
      * 获取一个Sequelize的模型
      * @returns {any}
      */
-    public async getModel(): Promise<any> {
+    public async getModel(): Promise<typeof Sequelize.Model | any> {
         if (!this._db) {
             this._db = await this._ctx.config.getSequelizeDb()
         }
@@ -267,11 +274,11 @@ export default class Model {
      * @param config 
      */
     public async incOrDec(config: { [index: string]: number }) {
-        let db = await this.getModel()
+        let db: any = await this.getModel()
         this._operate = Operate.Save;
         let keys = Object.keys(config);
         if (keys.length > 0) {
-            let data: { [index: string]: Sequelize.literal } = {};
+            let data: { [index: string]: Sequelize.Utils.Literal } = {};
             for (let i = 0; i < keys.length; i++) {
                 data[keys[i]] = Sequelize.literal(`\`${keys[i]}\`${config[keys[i]] > 0 ? '+' : ''}${config[keys[i]]}`)
             }
@@ -373,11 +380,24 @@ export default class Model {
      * 发起查询请求
      * @returns {Bluebird<any[]>}
      */
-    public async select() {
-        this._operate = Operate.Select
-        let d = await (await this.getModel()).findAll(this._parse_config())
+    public async select(data: { getWhere?: boolean } = {}): Promise<any[] | string> {
+        let d: any = await new Promise(async (s, j) => {
+            this._operate = Operate.Select
+            let m: any = (await this.getModel());
+            if (true === this._getSql) {
+                this.page(1, 0);
+                await m.findAll(Object.assign(this._parse_config(), {
+                    raw: true,
+                    logging: (sql: string, option: any) => {
+                        s(option.where);
+                    }
+                }))
+            } else {
+                s(await m.findAll(Object.assign(this._parse_config())))
+            }
+        })
         this._clean();
-        return read_value(d);
+        return d;
         // let data: any = [];
         // d.forEach((v: any) => {
         //     data.push(v.dataValues)
@@ -490,7 +510,7 @@ export default class Model {
      */
     public async caseSave(config: {
         field: { save: string, case: string },
-        data: { [index: string]: Sequelize.literal | string | number },
+        data: { [index: string]: Sequelize.Utils.Literal | string | number },
         limit?: number
     }[]) {
         let Save: any = {};
@@ -514,7 +534,7 @@ export default class Model {
      */
     protected _parse_case_save_config(config: {
         field: { save: string, case: string },
-        data: { [index: string]: Sequelize.literal | string | number },
+        data: { [index: string]: Sequelize.Utils.Literal | string | number },
         limit?: number
     }) {
         let CaseWhen: string[] = [];

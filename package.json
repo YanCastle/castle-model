@@ -1,6 +1,6 @@
 {
   "name": "@ctsy/model",
-  "version": "1.0.28",
+  "version": "2.0.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,8 +11,7 @@
     "yarn.lock"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "rm -rf dist && tsc"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -26,12 +25,13 @@
   },
   "homepage": "https://github.com/YanCastle/castle-model#readme",
   "dependencies": {
-    "lodash": "^4.17.11",
-    "sequelize": "^4.43.0"
+    "lodash": "^4.17.15",
+    "mysql2": "^2.0.1",
+    "sequelize": "^5.21.2"
   },
   "devDependencies": {
+    "@types/bluebird": "^3.5.29",
     "@types/lodash": "*",
-    "@types/node": "*",
-    "@types/sequelize": "^4"
+    "@types/node": "*"
   }
 }
