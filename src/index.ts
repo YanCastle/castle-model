@@ -74,7 +74,13 @@ export default class Model {
     private _true_table_name = "";
     private _fields: any = [];
     private _table_name = "";
+    /**
+     * 事务存储
+     */
     public transaction: Sequelize.Transaction | any;
+    /**
+     * 当前内部对象
+     */
     private _options: Options = {
         fields: [], where: {}, group: [], exclude: []
     };
@@ -404,9 +410,43 @@ export default class Model {
         // })
         // return data;
     }
+    public async fixField(data: any) {
+        let field = await this.getDbTableFields()
+        let t = new Date
+        switch (this._operate) {
+            case Operate.Add:
+                if (field.includes('CTime')) {
+                    data.CTime = t;
+                    data.CUID = this._ctx.UID;
+                }
+                if (field.includes('UTime')) {
+                    data.UTime = new Date;
+                    data.UUID = this._ctx.UID;
+                }
+                delete data.DUID; delete data.DTime;
+                break;
+            case Operate.Save:
+                if (field.includes('UTime')) {
+                    data.UTime = new Date;
+                    data.UUID = this._ctx.UID;
+                }
+                delete data.CUID; delete data.CTime;
+                delete data.DUID; delete data.DTime;
+                break;
+            case Operate.Delete:
+                if (field.includes('DTime')) {
+                    data.DTime = new Date;
+                    data.DUID = this._ctx.UID;
+                }
+                delete data.CUID; delete data.CTime;
+                delete data.UUID; delete data.UTime;
+                break;
+
+        }
+    }
     public async add(data: Object) {
         this._operate = Operate.Add
-        let d = await (await this.getModel()).create(data, this.changeOptions)
+        let d = await (await this.getModel()).create(this.fixField(data), this.changeOptions)
         this._clean();
         return read_value(d);
     }
@@ -428,8 +468,11 @@ export default class Model {
      * @param data
      * @returns {any}
      */
-    public async addAll(data: any) {
+    public async addAll<T>(data: T[]) {
         this._operate = Operate.Add
+        for (let x of data) {
+            this.fixField(x);
+        }
         let d = await (await this.getModel()).bulkCreate(data, Object.assign({
             fields: Object.keys(data[0])
         }, this.changeOptions))
@@ -451,7 +494,7 @@ export default class Model {
      * 支持selectAndCount
      * @returns {Promise<{count; rows: any[]}>}
      */
-    public async selectAndCount() {
+    public async selectAndCount<T>(): Promise<{ count: number, rows: T[] }> {
         this._operate = Operate.Select
         let d = await (await this.getModel()).findAndCountAll(this._parse_config())
         // let data: any[] = [];
@@ -468,7 +511,7 @@ export default class Model {
      * 设置limit参数，
      * @param {number} Number
      */
-    public limit(Number: number) {
+    public limit(Number: number): this {
         this._options.limit = Number;
         return this;
     }
@@ -492,11 +535,18 @@ export default class Model {
      * 调用delete语句
      * @returns {any}
      */
-    public async del(): Promise<number> {
+    public async del(force: boolean = false): Promise<number> {
         this._operate = Operate.Delete
         let d = 0;
-        if ((await this.getDbTableFields()).indexOf('DTime') > -1) {
-            d = await this.save({ DTime: Date.now() })
+        let fields = await this.getDbTableFields();
+        if (force === false && fields.indexOf('DTime') > -1) {
+            let s: { [index: string]: any } = {
+                DTime: Date.now()
+            }
+            if (fields.includes('DUID')) {
+                s.DUID = this._ctx.UID;
+            }
+            d = await this.save(s, Operate.Delete)
         } else {
             this._operate = Operate.Delete
             d = await (await this.getModel()).destroy(Object.assign(this._parse_config(), this.changeOptions))
@@ -557,8 +607,8 @@ export default class Model {
      * @param data
      * @returns 
      */
-    public async save(data: any): Promise<number> {
-        this._operate = Operate.Save
+    public async save(data: any, op?: Operate): Promise<number> {
+        this._operate = op || Operate.Save
         let d: number[] = await (await this.getModel()).update(data, Object.assign({
             where: this._parse_where(),
             options: {
@@ -724,5 +774,42 @@ export const DbOp = {
     values: Sequelize.Op.values,
     col: Sequelize.Op.col,
     placeholder: Sequelize.Op.placeholder,
+    $eq: Sequelize.Op.eq,
+    $ne: Sequelize.Op.ne,
+    $neq: Sequelize.Op.ne,
+    $gte: Sequelize.Op.gte,
+    $gt: Sequelize.Op.gt,
+    $lte: Sequelize.Op.lte,
+    $lt: Sequelize.Op.lt,
+    $not: Sequelize.Op.not,
+    $is: Sequelize.Op.is,
+    $in: Sequelize.Op.in,
+    $notIn: Sequelize.Op.notIn,
+    "$not in": Sequelize.Op.notIn,
+    $like: Sequelize.Op.like,
+    $notLike: Sequelize.Op.notLike,
+    $iLike: Sequelize.Op.iLike,
+    $notILike: Sequelize.Op.notILike,
+    $regexp: Sequelize.Op.regexp,
+    $notRegexp: Sequelize.Op.notRegexp,
+    $iRegexp: Sequelize.Op.iRegexp,
+    $notIRegexp: Sequelize.Op.notIRegexp,
+    $between: Sequelize.Op.between,
+    $notBetween: Sequelize.Op.notBetween,
+    $overlap: Sequelize.Op.overlap,
+    $contains: Sequelize.Op.contains,
+    $contained: Sequelize.Op.contained,
+    $adjacent: Sequelize.Op.adjacent,
+    $strictLeft: Sequelize.Op.strictLeft,
+    $strictRight: Sequelize.Op.strictRight,
+    $noExtendRight: Sequelize.Op.noExtendRight,
+    $noExtendLeft: Sequelize.Op.noExtendLeft,
+    $and: Sequelize.Op.and,
+    $or: Sequelize.Op.or,
+    $any: Sequelize.Op.any,
+    $all: Sequelize.Op.all,
+    $values: Sequelize.Op.values,
+    $col: Sequelize.Op.col,
+    $placeholder: Sequelize.Op.placeholder,
     // join: Sequelize.Op.
 }
