@@ -6,7 +6,7 @@
     "strict": true,
     "sourceMap": true,
     "declaration": true,
-    "removeComments": true,
+    "removeComments": false,
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "dist",
