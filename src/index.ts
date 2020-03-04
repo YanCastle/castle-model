@@ -443,10 +443,12 @@ export default class Model {
                 break;
 
         }
+        return data;
     }
     public async add(data: Object) {
         this._operate = Operate.Add
-        let d = await (await this.getModel()).create(this.fixField(data), this.changeOptions)
+        await this.fixField(data);
+        let d = await (await this.getModel()).create(data, this.changeOptions)
         this._clean();
         return read_value(d);
     }
@@ -471,7 +473,7 @@ export default class Model {
     public async addAll<T>(data: T[]) {
         this._operate = Operate.Add
         for (let x of data) {
-            this.fixField(x);
+            await this.fixField(x);
         }
         let d = await (await this.getModel()).bulkCreate(data, Object.assign({
             fields: Object.keys(data[0])
