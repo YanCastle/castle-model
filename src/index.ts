@@ -589,20 +589,25 @@ export default class Model {
         data: { [index: string]: Sequelize.Utils.Literal | string | number },
         limit?: number
     }) {
-        let CaseWhen: string[] = [];
-        let CaseIDs: string[] = [];
+        let CaseWhen = [];
+        let CaseIDs = [];
         let keys = Object.keys(config.data);
         for (let i = 0; i < keys.length; i++) {
             let when = keys[i];
             let value = config.data[when];
-            CaseWhen.push(`WHEN ${when} THEN ${value}`)
+            if ('string' == typeof value) {
+                value = '"' + value.replace(/"/g, '\"') + '"'
+            }
+            CaseWhen.push(`WHEN ${when} THEN ${value}`);
             CaseIDs.push(when);
         }
-        if (CaseIDs.length == 0) { throw new Error('NoCaseSaveData') }
-        return {
-            raw: `CASE ${config.field.case} ${CaseWhen.join(' ')} ELSE ${config.field.save} END`,
-            where: CaseIDs
+        if (CaseIDs.length == 0) {
+            throw new Error('NoCaseSaveData');
         }
+        return {
+            raw: `CASE \`${config.field.case}\` ${CaseWhen.join(' ')} ELSE \`${config.field.save}\` END`,
+            where: CaseIDs
+        };
     }
     /**
      * 调用save方法
