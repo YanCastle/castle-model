@@ -417,18 +417,21 @@ export default class Model {
             case Operate.Add:
                 if (field.includes('CTime')) {
                     data.CTime = t;
-                    data.CUID = this._ctx.UID;
+                    if (!data.CUID)
+                        data.CUID = this._ctx.UID || 0;
                 }
                 if (field.includes('UTime')) {
                     data.UTime = new Date;
-                    data.UUID = this._ctx.UID;
+                    if (!data.UUID)
+                        data.UUID = this._ctx.UID || 0;
                 }
                 delete data.DUID; delete data.DTime;
                 break;
             case Operate.Save:
                 if (field.includes('UTime')) {
                     data.UTime = new Date;
-                    data.UUID = this._ctx.UID;
+                    if (!data.UUID)
+                        data.UUID = this._ctx.UID;
                 }
                 delete data.CUID; delete data.CTime;
                 delete data.DUID; delete data.DTime;
@@ -436,7 +439,8 @@ export default class Model {
             case Operate.Delete:
                 if (field.includes('DTime')) {
                     data.DTime = new Date;
-                    data.DUID = this._ctx.UID;
+                    if (!data.DUID)
+                        data.DUID = this._ctx.UID || 0;
                 }
                 delete data.CUID; delete data.CTime;
                 delete data.UUID; delete data.UTime;
