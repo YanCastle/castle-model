@@ -1,6 +1,6 @@
 {
   "name": "@ctsy/model",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,7 +30,9 @@
     "sequelize": "~5"
   },
   "devDependencies": {
+    "@types/bluebird": "^3.5.30",
     "@types/lodash": "*",
-    "@types/node": "*"
+    "@types/node": "*",
+    "@types/validator": "^13.0.0"
   }
 }
