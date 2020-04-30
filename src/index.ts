@@ -395,7 +395,7 @@ export default class Model {
                 await m.findAll(Object.assign(this._parse_config(), {
                     raw: true,
                     logging: function () {
-                        for (let i = arguments.length; i >= 0; i--) {
+                        for (let i = arguments.length - 1; i >= 0; i--) {
                             if (undefined !== arguments[i].where) {
                                 s(arguments[i].where)
                                 return;
