@@ -394,8 +394,14 @@ export default class Model {
                 this.page(1, 0);
                 await m.findAll(Object.assign(this._parse_config(), {
                     raw: true,
-                    logging: (sql: string, option: any) => {
-                        s(option.where);
+                    logging: function (sql: string, option: any) {
+                        for (let x of arguments) {
+                            if (x.where) {
+                                s(x.where)
+                                return;
+                            }
+                        }
+                        j('Failed Get SQL')
                     }
                 }))
             } else {
@@ -494,7 +500,8 @@ export default class Model {
      * 取数量
      */
     public async count() {
-        return 0;
+        return await (await this.getModel()).count(this._parse_config());
+        // return 0;
     }
     /**
      * 支持selectAndCount
