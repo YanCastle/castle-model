@@ -394,10 +394,10 @@ export default class Model {
                 this.page(1, 0);
                 await m.findAll(Object.assign(this._parse_config(), {
                     raw: true,
-                    logging: function (sql: string, option: any) {
-                        for (let x of arguments) {
-                            if (x.where) {
-                                s(x.where)
+                    logging: function () {
+                        for (let i = arguments.length; i >= 0; i--) {
+                            if (undefined !== arguments[i].where) {
+                                s(arguments[i].where)
                                 return;
                             }
                         }
