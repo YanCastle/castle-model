@@ -421,6 +421,7 @@ export default class Model {
      * @returns {Bluebird<any[]>}
      */
     public async select(data: { getWhere?: boolean } = {}): Promise<any[] | string> {
+        await hook.emit(ModelHooks.Select, HookWhen.Before, this, { args: arguments, data: {} })
         let d: any = await new Promise(async (s, j) => {
             this._operate = Operate.Select
             let m: any = (await this.getModel());
@@ -443,6 +444,7 @@ export default class Model {
             }
         })
         this._clean();
+        await hook.emit(ModelHooks.Select, HookWhen.After, this, { args: arguments, data: d })
         return d;
         // let data: any = [];
         // d.forEach((v: any) => {
