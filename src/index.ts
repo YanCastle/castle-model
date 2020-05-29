@@ -276,6 +276,24 @@ export default class Model {
         }
     }
     /**
+     * 保存或添加
+     * @param data 
+     * @param where 
+     */
+    async saveOrAdd(data: Object, where: Object | null = null) {
+        if (!where) {
+            throw new Error('条件错误')
+        }
+        let d = await this.where(where || data).find()
+        if (_.isObject(d)) {
+            //存在
+            return await this.where(where).save(data);
+        } else {
+            //不存在
+            return await this.add(data)
+        }
+    }
+    /**
      * 自增或自减
      * @param config 
      */
