@@ -507,9 +507,12 @@ export default class Model {
     public async add<T>(data: Object): Promise<T | any> {
         this._operate = Operate.Add
         await this.fixField(data);
+        await hook.emit(ModelHooks.Add, HookWhen.Before, this, { args: arguments, data: {} })
         let d = await (await this.getModel()).create(data, this.changeOptions)
         this._clean();
-        return read_value(d);
+        let rs = read_value(d);
+        await hook.emit(ModelHooks.Add, HookWhen.After, this, { args: arguments, data: rs })
+        return rs;
     }
     /**
      * 设置数据内容
