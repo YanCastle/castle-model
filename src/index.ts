@@ -30,6 +30,7 @@ export enum ModelHooks {
     AddAll = 'AddAll',
     Save = "Save",
     Delete = 'Delete',
+    Where = 'Where',
 }
 /**
  * 数据库支持的函数
@@ -136,6 +137,10 @@ export default class Model {
             }
         });
         return w;
+        // return hook.emit(ModelHooks.Select, HookWhen.Before, this, { args: arguments, data: {} }).then(() => {
+        //     return w;
+        // })
+        // return w;
     }
     get changeOptions() {
         let d: any = {};
