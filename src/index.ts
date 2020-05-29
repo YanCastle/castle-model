@@ -664,7 +664,7 @@ export default class Model {
      */
     public async save(data: any, op?: Operate): Promise<number> {
         this._operate = op || Operate.Save
-        data = this.fixField(data)
+        data = await this.fixField(data)
         let d: number[] = await (await this.getModel()).update(data, Object.assign({
             where: this._parse_where(),
             options: {
@@ -728,7 +728,7 @@ export default class Model {
     }
 
     /**
-     * 获取某个字段
+     * 获取某个字段或以某个字段位键的对象
      * @param Fields
      * @param {boolean} More
      * @returns {any}
