@@ -27,6 +27,7 @@ export interface Options {
 export enum ModelHooks {
     Select = 'Select',
     Add = 'Add',
+    AddAll = 'AddAll',
     Save = "Save",
     Delete = 'Delete',
 }
@@ -537,11 +538,14 @@ export default class Model {
         for (let x of data) {
             await this.fixField(x);
         }
+        await hook.emit(ModelHooks.AddAll, HookWhen.Before, this, { args: arguments, data: {} })
         let d = await (await this.getModel()).bulkCreate(data, Object.assign({
             fields: Object.keys(data[0])
         }, this.changeOptions))
         this._clean();
-        return read_value(d)
+        let rs = read_value(d)
+        await hook.emit(ModelHooks.AddAll, HookWhen.After, this, { args: arguments, data: rs })
+        return rs;
         // let ds: any = [];
         // d.forEach((v: any) => {
         //     ds.push(v.dataValues)
