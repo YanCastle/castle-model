@@ -285,13 +285,16 @@ export default class Model {
             throw new Error('条件错误')
         }
         let d = await this.where(where || data).find()
+        let rs: any = false;
         if (_.isObject(d)) {
             //存在
-            return await this.where(where).save(data);
+            rs = await this.where(where).save(data);
         } else {
             //不存在
-            return await this.add(data)
+            rs = await this.add(data)
         }
+        this._clean()
+        return rs;
     }
     /**
      * 自增或自减
@@ -473,13 +476,21 @@ export default class Model {
         }
         return data;
     }
-    public async add(data: Object) {
+    /**
+     * 添加一条数据
+     * @param data 
+     */
+    public async add<T>(data: Object): Promise<T | any> {
         this._operate = Operate.Add
         await this.fixField(data);
         let d = await (await this.getModel()).create(data, this.changeOptions)
         this._clean();
         return read_value(d);
     }
+    /**
+     * 设置数据内容
+     * @param data 
+     */
     public async data(data: Object) {
         (await this.getModel()).build(data)
         return this;
