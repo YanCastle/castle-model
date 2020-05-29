@@ -733,7 +733,7 @@ export default class Model {
      * @param {boolean} More
      * @returns {any}
      */
-    public async getFields(Fields: string | string[], More = false) {
+    public async getFields<T>(Fields: string | string[], More = false): Promise<T[] | T> {
         this._operate = Operate.Select
         if (!More) {
             this.page(1, 1)
@@ -741,6 +741,7 @@ export default class Model {
         if (_.isString(Fields)) {
             Fields = Fields.split(',')
         }
+        let rs: any = [];
         if (Fields.length > 0) {
             let d = await this.fields(Fields).select()
             this._clean();
@@ -756,21 +757,23 @@ export default class Model {
                             data[v[pk]] = v;
                         }
                     })
-                    return Fields.length == 1 ? odata : data;
+                    rs = Fields.length == 1 ? odata : data;
                 } else {
                     if (Fields.length == 1) {
-                        return d[0][pk];
+                        rs = d[0][pk];
                     } else {
-                        return d[0];
+                        rs = d[0];
                     }
                 }
             } else {
-                return More ? [] : ''
+                rs = More ? [] : ''
             }
         }
         else {
-            return More ? [] : ''
+            rs = More ? [] : ''
         }
+        this._clean();
+        return rs;
     }
 }
 
