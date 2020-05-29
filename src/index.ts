@@ -687,6 +687,7 @@ export default class Model {
     public async save(data: any, op?: Operate): Promise<number> {
         this._operate = op || Operate.Save
         data = await this.fixField(data)
+        await hook.emit(ModelHooks.Save, HookWhen.Before, this, { args: arguments, data: {} })
         let d: number[] = await (await this.getModel()).update(data, Object.assign({
             where: this._parse_where(),
             options: {
@@ -694,6 +695,7 @@ export default class Model {
             }
         }, this.changeOptions))
         this._clean();
+        await hook.emit(ModelHooks.Save, HookWhen.After, this, { args: arguments, data: d[0] })
         return d[0];
     }
     /**
