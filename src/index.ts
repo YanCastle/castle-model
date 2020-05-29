@@ -438,6 +438,9 @@ export default class Model {
         // return data;
     }
     public async fixField(data: any) {
+        if ('object' !== typeof data) {
+            throw new Error('数据错误')
+        }
         let field = await this.getDbTableFields()
         let t = new Date
         switch (this._operate) {
@@ -474,6 +477,11 @@ export default class Model {
                 break;
 
         }
+        _.forOwn(data, (v, k) => {
+            if (v === undefined) {
+                delete data[k];
+            }
+        })
         return data;
     }
     /**
@@ -656,6 +664,7 @@ export default class Model {
      */
     public async save(data: any, op?: Operate): Promise<number> {
         this._operate = op || Operate.Save
+        data = this.fixField(data)
         let d: number[] = await (await this.getModel()).update(data, Object.assign({
             where: this._parse_where(),
             options: {
