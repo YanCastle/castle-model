@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/YanCastle/castle-model#readme",
   "dependencies": {
+    "@ctsy/hook": "^0.0.6",
     "lodash": "~4",
     "mysql2": "~2",
     "sequelize": "~5"

@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import * as Sequelize from "sequelize";
 import { env } from 'process';
+import hook, { HookWhen } from '@ctsy/hook'
 export const Op: any = Sequelize.Op;
 export const Fn: any = Sequelize.fn;
 export const Col: any = Sequelize.col;
@@ -8,6 +9,9 @@ export const QueryTypes = Sequelize.QueryTypes;
 export enum Operate {
     Select, Add, Delete, Save
 }
+/**
+ * 数据库操作参数对象
+ */
 export interface Options {
     fields: any[],
     exclude: string[],
@@ -16,6 +20,15 @@ export interface Options {
     order?: string[] | string,
     limit?: number,
     offset?: number,
+}
+/**
+ * 数据库操作的Hook
+ */
+export enum ModelHooks {
+    Select = 'Select',
+    Add = 'Add',
+    Save = "Save",
+    Delete = 'Delete',
 }
 /**
  * 数据库支持的函数
