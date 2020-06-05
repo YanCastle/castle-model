@@ -133,7 +133,11 @@ export default class Model {
             else if ('object' == typeof v) {
                 w[k] = Model.parseWhere(v);
             } else {
-                w[k] = v;
+                if (/^[A-Za-z_][A-Za-z0-9_]{0,1}$/.test(k)) {
+                    w[k] = v;
+                } else {
+                    throw new Error('Error Where Field: ' + k);
+                }
             }
         });
         return w;
@@ -212,7 +216,7 @@ export default class Model {
                 if (p.length > 1 && !['desc', 'asc'].includes(p[1].toLowerCase())) {
                     throw new Error('Error OrderBy Rule: ' + p[1])
                 }
-                if (!/[A-Za-z0-9_]{1,}/.test(p[0])) {
+                if (!/^[A-Za-z0-9_]{1,}$/.test(p[0])) {
                     throw new Error('Error OrderBy Field: ' + p[0])
                 }
                 order.push(p)
