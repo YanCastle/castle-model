@@ -133,7 +133,7 @@ export default class Model {
             else if ('object' == typeof v) {
                 w[k] = Model.parseWhere(v);
             } else {
-                if (/^[A-Za-z_][A-Za-z0-9_]{0,1}$/.test(k)) {
+                if (/^[A-Za-z_][A-Za-z0-9_]{0,}$/.test(k)) {
                     w[k] = v;
                 } else {
                     throw new Error('Error Where Field: ' + k);
