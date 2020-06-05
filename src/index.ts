@@ -208,7 +208,14 @@ export default class Model {
         }
         if (this._options.order instanceof Array) {
             _.forOwn(this._options.order, (v: any, k: any) => {
-                order.push(v.trim().split(' '))
+                let p = v.trim().split(' ');
+                if (p.length > 1 && !['desc', 'asc'].includes(p[1].toLowerCase())) {
+                    throw new Error('Error OrderBy Rule: ' + p[1])
+                }
+                if (!/[A-Za-z0-9_]{1,}/.test(p[0])) {
+                    throw new Error('Error OrderBy Field: ' + p[0])
+                }
+                order.push(p)
                 //TODO 检查是否在这个表中，以及是否允许参与查询
             })
         }
