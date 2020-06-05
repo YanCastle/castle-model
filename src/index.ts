@@ -208,7 +208,8 @@ export default class Model {
         }
         if (this._options.order instanceof Array) {
             _.forOwn(this._options.order, (v: any, k: any) => {
-                order.push(v.split(' '))
+                order.push(v.trim().split(' '))
+                //TODO 检查是否在这个表中，以及是否允许参与查询
             })
         }
         return order;
@@ -762,7 +763,7 @@ export default class Model {
      * @param {boolean} More
      * @returns {any}
      */
-    public async getFields<T>(Fields: string | string[], More = false): Promise<T[] | T> {
+    public async getFields<T>(Fields: string | string[], More = false): Promise<string | string[] | { [index: string]: T } | any> {
         this._operate = Operate.Select
         if (!More) {
             this.page(1, 1)
