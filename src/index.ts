@@ -502,6 +502,15 @@ export default class Model {
                         data.UUID = this._ctx.UID || 0;
                 }
                 delete data.DUID; delete data.DTime;
+                if (field.includes('AID') && this._ctx.Secret && this._ctx.Secret.AID) {
+                    data.AID = this._ctx.Secret.AID
+                }
+                if (field.includes('GID') && this._ctx.Secret && this._ctx.Secret.GID) {
+                    data.GID = this._ctx.Secret.GID
+                }
+                if (field.includes('Key') && this._ctx.Secret && this._ctx.Secret.Key) {
+                    data.Key = this._ctx.Secret.Key
+                }
                 break;
             case Operate.Save:
                 if (field.includes('UTime')) {
@@ -511,6 +520,8 @@ export default class Model {
                 }
                 delete data.CUID; delete data.CTime;
                 delete data.DUID; delete data.DTime;
+                delete data.AID; delete data.Key;
+                delete data.GID;
                 break;
             case Operate.Delete:
                 if (field.includes('DTime')) {
