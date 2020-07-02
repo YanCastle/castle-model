@@ -180,8 +180,21 @@ export default class Model {
      * @returns {{} | any}
      * @private
      */
-    private _parse_where() {
-        return Model.parseWhere(this._options.where);
+    private async _parse_where() {
+        let w = Model.parseWhere(this._options.where);
+        if (this._ctx.Secret && this._ctx.Secret.AID) {
+            let fields = await this.getDbTableFields()
+            if (fields.includes('AID')) {
+                w.AID = this._ctx.Secret.AID;
+            }
+            if (fields.includes('GID') && this._ctx.Secret.GID > 0) {
+                w.GID = this._ctx.Secret.GID;
+            }
+            if (fields.includes('Key') && this._ctx.Secret.Key.length > 0) {
+                w.Key = this._ctx.Secret.Key;
+            }
+        }
+        return w;
     }
     /**
      * 获取查询字段
@@ -230,10 +243,10 @@ export default class Model {
      * @returns {{}}
      * @private
      */
-    private _parse_config() {
+    private async _parse_config() {
         let config: any = { raw: true };
         config['attributes'] = this._parse_fields();
-        config['where'] = this._parse_where();
+        config['where'] = await this._parse_where();
         if (this._options.order) {
             config['order'] = this._parse_order()
         }
@@ -341,7 +354,7 @@ export default class Model {
                 data[keys[i]] = Sequelize.literal(`\`${keys[i]}\`${config[keys[i]] > 0 ? '+' : ''}${config[keys[i]]}`)
             }
             let d = await db.update(data, Object.assign({
-                where: this._parse_where(),
+                where: await this._parse_where(),
                 options: {
                     returning: true
                 }
@@ -445,7 +458,7 @@ export default class Model {
             let m: any = (await this.getModel());
             if (true === this._getSql) {
                 this.page(1, 0);
-                await m.findAll(Object.assign(this._parse_config(), {
+                await m.findAll(Object.assign(await this._parse_config(), {
                     raw: true,
                     logging: function () {
                         for (let i = arguments.length - 1; i >= 0; i--) {
@@ -458,7 +471,7 @@ export default class Model {
                     }
                 }))
             } else {
-                s(await m.findAll(Object.assign(this._parse_config())))
+                s(await m.findAll(Object.assign(await this._parse_config())))
             }
         })
         this._clean();
@@ -576,7 +589,7 @@ export default class Model {
      * 取数量
      */
     public async count() {
-        return await (await this.getModel()).count(this._parse_config());
+        return await (await this.getModel()).count(await this._parse_config());
         // return 0;
     }
     /**
@@ -585,7 +598,7 @@ export default class Model {
      */
     public async selectAndCount<T>(): Promise<{ count: number, rows: T[] }> {
         this._operate = Operate.Select
-        let d = await (await this.getModel()).findAndCountAll(this._parse_config())
+        let d = await (await this.getModel()).findAndCountAll(await this._parse_config())
         // let data: any[] = [];
         // d.rows.forEach((v: any) => {
         //     data.push(v.dataValues)
@@ -638,7 +651,7 @@ export default class Model {
             d = await this.save(s, Operate.Delete)
         } else {
             this._operate = Operate.Delete
-            d = await (await this.getModel()).destroy(Object.assign(this._parse_config(), this.changeOptions))
+            d = await (await this.getModel()).destroy(Object.assign(await this._parse_config(), this.changeOptions))
         }
         this._clean();
         return d;
@@ -706,7 +719,7 @@ export default class Model {
         data = await this.fixField(data)
         await hook.emit(ModelHooks.Save, HookWhen.Before, this, { args: arguments, data: {} })
         let d: number[] = await (await this.getModel()).update(data, Object.assign({
-            where: this._parse_where(),
+            where: await this._parse_where(),
             options: {
                 returning: true
             }
