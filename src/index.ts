@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as Sequelize from "sequelize";
 import { env } from 'process';
 import hook, { HookWhen } from '@ctsy/hook'
+import { ExecException } from 'child_process';
 export const Op: any = Sequelize.Op;
 export const Fn: any = Sequelize.fn;
 export const Col: any = Sequelize.col;
@@ -549,7 +550,14 @@ export default class Model {
         this._operate = Operate.Add
         await this.fixField(data);
         await hook.emit(ModelHooks.Add, HookWhen.Before, this, { args: arguments, data: {} })
-        let d = await (await this.getModel()).create(data, this.changeOptions)
+        let d = await (await this.getModel()).create(data, this.changeOptions).catch((e: ExecException) => {
+            if (e.message === 'Validation error') {
+                e.message = '数据重复';
+            } else if (e.message.includes('Cannot add or update a child row: a foreign key')) {
+                e.message = '关联数据不存在'
+            }
+            throw e;
+        })
         this._clean();
         let rs = read_value(d);
         await hook.emit(ModelHooks.Add, HookWhen.After, this, { args: arguments, data: rs })
@@ -585,7 +593,14 @@ export default class Model {
         await hook.emit(ModelHooks.AddAll, HookWhen.Before, this, { args: arguments, data: {} })
         let d = await (await this.getModel()).bulkCreate(data, Object.assign({
             fields: Object.keys(data[0])
-        }, this.changeOptions))
+        }, this.changeOptions)).catch((e: ExecException) => {
+            if (e.message === 'Validation error') {
+                e.message = '数据重复';
+            } else if (e.message.includes('Cannot add or update a child row: a foreign key')) {
+                e.message = '关联数据不存在'
+            }
+            throw e;
+        })
         this._clean();
         let rs = read_value(d)
         await hook.emit(ModelHooks.AddAll, HookWhen.After, this, { args: arguments, data: rs })
