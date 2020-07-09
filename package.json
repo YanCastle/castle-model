@@ -29,7 +29,7 @@
     "@ctsy/hook": "*",
     "lodash": "~4",
     "mysql2": "~2",
-    "sequelize": "~5"
+    "sequelize": "5"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.30",

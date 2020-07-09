@@ -185,13 +185,13 @@ export default class Model {
         let w = Model.parseWhere(this._options.where);
         if (this._ctx.Secret && this._ctx.Secret.AID) {
             let fields = await this.getDbTableFields()
-            if (fields.includes('AID')) {
+            if (fields.includes('AID') && undefined === w.AID) {
                 w.AID = this._ctx.Secret.AID;
             }
-            if (fields.includes('GID') && this._ctx.Secret.GID > 0) {
+            if (fields.includes('GID') && undefined === w.GID && this._ctx.Secret.GID > 0) {
                 w.GID = this._ctx.Secret.GID;
             }
-            if (fields.includes('Key') && this._ctx.Secret.Key.length > 0) {
+            if (fields.includes('Key') && undefined === w.Key && this._ctx.Secret.Key.length > 0) {
                 w.Key = this._ctx.Secret.Key;
             }
         }
@@ -504,13 +504,16 @@ export default class Model {
                 }
                 delete data.DUID; delete data.DTime;
                 if (field.includes('AID') && this._ctx.Secret && this._ctx.Secret.AID) {
-                    data.AID = this._ctx.Secret.AID
+                    if (!data.AID)
+                        data.AID = this._ctx.Secret.AID
                 }
                 if (field.includes('GID') && this._ctx.Secret && this._ctx.Secret.GID) {
-                    data.GID = this._ctx.Secret.GID
+                    if (!data.GID)
+                        data.GID = this._ctx.Secret.GID
                 }
                 if (field.includes('Key') && this._ctx.Secret && this._ctx.Secret.Key) {
-                    data.Key = this._ctx.Secret.Key
+                    if (!data.Key)
+                        data.Key = this._ctx.Secret.Key
                 }
                 break;
             case Operate.Save:
@@ -521,7 +524,8 @@ export default class Model {
                 }
                 delete data.CUID; delete data.CTime;
                 delete data.DUID; delete data.DTime;
-                delete data.AID; delete data.Key;
+                delete data.AID;
+                delete data.Key;
                 delete data.GID;
                 break;
             case Operate.Delete:
@@ -693,6 +697,8 @@ export default class Model {
     }[]) {
         let Save: any = {};
         let Where: any = {};
+        let CaseStr: string[] = [];
+        let WhereStr: string[] = [];
         for (let i = 0; i < config.length; i++) {
             let { raw, where } = this._parse_case_save_config(config[i]);
             if (Where[config[i].field.case]) {
@@ -700,12 +706,15 @@ export default class Model {
             } else {
                 Where[config[i].field.case] = where;
             }
-            Save[config[i].field.save] = Sequelize.literal(raw);
+            // Save[config[i].field.save] = Sequelize.literal(raw);
+            CaseStr.push(`\`${config[i].field.save}\` = ` + raw)
         }
-        _.forOwn(Where, (v, k) => {
+        _.forOwn(Where, (v: number[], k) => {
             Where[k] = { [Sequelize.Op.in]: _.uniq(v) }
+            WhereStr.push(`\`${k}\` IN (${v.map(o => `'${o}'`).join(',')})`)
         })
-        return await this.where(Where).save(Save);
+        // let str = `UPDATE ${this._true_table_name} SET ${CaseStr.join(',')} WHERE ${WhereStr.join(' AND ')}`
+        return await this.exec(`UPDATE ${this._true_table_name} SET ${CaseStr.join(',')} WHERE ${WhereStr.join(' AND ')}`, 'UPDATE');
     }
     /**
      * 解析生成caseSave数据 
@@ -873,6 +882,7 @@ export const DbDataType = {
     enum: Sequelize.ENUM,
     datetime: Sequelize.DATE,
     timestamp: Sequelize.TIME,
+    json: Sequelize.JSON,
 
 }
 export const DbOp = {
