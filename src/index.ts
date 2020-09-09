@@ -768,15 +768,21 @@ export default class Model {
      * @param sql
      * @returns {any}
      */
-    public async query(sql: string) {
+    public async query(sql: string, conf?: Sequelize.QueryOptions) {
         await this.getModel()
         return await this._db.query(sql.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), Object.assign({
             type: Sequelize.QueryTypes.SELECT
-        }, this.changeOptions));
+        }, conf || {}, this.changeOptions));
     }
-    public async exec(SQL: string, Type: Sequelize.QueryTypes | string) {
+    /**
+     * 执行SQL
+     * @param SQL 
+     * @param Type 
+     * @param conf 
+     */
+    public async exec(SQL: string, Type: Sequelize.QueryTypes | string, conf?: Sequelize.QueryOptions) {
         await this.getModel()
-        return await this._db.query(SQL.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), Object.assign({ type: Type }, this.changeOptions))
+        return await this._db.query(SQL.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), Object.assign({ type: Type }, conf || {}, this.changeOptions))
     }
     /**
      * 开启事物
