@@ -770,9 +770,7 @@ export default class Model {
      */
     public async query(sql: string, conf?: Sequelize.QueryOptions) {
         await this.getModel()
-        return await this._db.query(sql.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), Object.assign({
-            type: Sequelize.QueryTypes.SELECT
-        }, conf || {}, this.changeOptions));
+        return await this.exec(sql, Sequelize.QueryTypes.SELECT, conf);
     }
     /**
      * 执行SQL
@@ -782,7 +780,7 @@ export default class Model {
      */
     public async exec(SQL: string, Type: Sequelize.QueryTypes | string, conf?: Sequelize.QueryOptions) {
         await this.getModel()
-        return await this._db.query(SQL.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix), Object.assign({ type: Type }, conf || {}, this.changeOptions))
+        return await this._db.query(SQL.replace(/__DB_PREFIX__/g, this._ctx.config.dbPrefix).replace(/__DB_TABLE__/g, this._true_table_name), Object.assign({ type: Type }, conf || {}, this.changeOptions))
     }
     /**
      * 开启事物
