@@ -493,12 +493,14 @@ export default class Model {
         switch (this._operate) {
             case Operate.Add:
                 if (field.includes('CTime')) {
-                    data.CTime = t;
+                    if (!data.CTime)
+                        data.CTime = t;
                     if (!data.CUID)
                         data.CUID = this._ctx.UID || 0;
                 }
                 if (field.includes('UTime')) {
-                    data.UTime = new Date;
+                    if (!data.UTime)
+                        data.UTime = new Date;
                     if (!data.UUID)
                         data.UUID = this._ctx.UID || 0;
                 }
