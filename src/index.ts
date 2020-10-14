@@ -452,7 +452,7 @@ export default class Model {
      * 发起查询请求
      * @returns {Bluebird<any[]>}
      */
-    public async select(data: { getWhere?: boolean } = {}): Promise<any[] | string> {
+    public async select<T>(data: { getWhere?: boolean } = {}): Promise<T[]> {
         await hook.emit(ModelHooks.Select, HookWhen.Before, this, { args: arguments, data: {} })
         let d: any = await new Promise(async (s, j) => {
             this._operate = Operate.Select
@@ -591,7 +591,7 @@ export default class Model {
      * @param data
      * @returns {any}
      */
-    public async addAll<T>(data: T[]) {
+    public async addAll<T>(data: T[]): Promise<T[]> {
         this._operate = Operate.Add
         for (let x of data) {
             await this.fixField(x);
@@ -838,14 +838,14 @@ export default class Model {
         }
         let rs: any = [];
         if (Fields.length > 0) {
-            let d = await this.fields(Fields).select()
+            let d = await this.fields(Fields).select<T>()
             this._clean();
             var pk = Fields[0];
             if (d.length > 0) {
                 if (More) {
                     var data: any = {};
                     var odata: any[] = [];
-                    _.forOwn(d, (v, k) => {
+                    _.forOwn(d, (v: any, k) => {
                         if (Fields.length == 1) {
                             odata.push(v[pk])
                         } else {
@@ -855,7 +855,7 @@ export default class Model {
                     rs = Fields.length == 1 ? odata : data;
                 } else {
                     if (Fields.length == 1) {
-                        rs = d[0][pk];
+                        rs = (<any>d[0])[pk];
                     } else {
                         rs = d[0];
                     }
