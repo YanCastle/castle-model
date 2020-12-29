@@ -202,12 +202,15 @@ export default class Model {
      * @returns {Array}
      * @private
      */
-    _parse_fields() {
+    _parse_fields(fields?: string[]) {
+        if (!fields) {
+            fields = this._options.fields
+        }
         let rs = []
-        if (this._options.fields.length == 0) {
+        if (fields.length == 0) {
             rs = this._ctx.config.getDbTableFields(this._table_name)
         } else {
-            rs = this._options.fields instanceof Function ? this._options.fields(this._ctx) : this._options.fields;
+            rs = fields instanceof Function ? fields(this._ctx) : fields;
         }
         if (this._options.exclude.length > 0) {
             for (let x of this._options.exclude) {
@@ -223,7 +226,7 @@ export default class Model {
         if (!ostr) { ostr = this._options.order }
         var order: any[] = [];
         if ("string" == typeof ostr) {
-            this._options.order = ostr.split(',')
+            ostr = ostr.split(',')
         }
         if (ostr instanceof Array) {
             for (let v of ostr) {
