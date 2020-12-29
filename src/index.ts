@@ -134,7 +134,7 @@ export default class Model {
             else if ('object' == typeof v) {
                 w[k] = Model.parseWhere(v);
             } else {
-                if (/^[A-Za-z_][A-Za-z0-9_]{0,}$/.test(k)) {
+                if (/^`{0,1}[A-Za-z_][A-Za-z0-9_]{0,}`{0,1}$/.test(k)) {
                     w[k] = v;
                 } else {
                     throw new Error('Error Where Field: ' + k);
@@ -219,23 +219,24 @@ export default class Model {
     /**
      * 解析排序Sort数据
      */
-    private _parse_order() {
-        var order: string[] = [];
-        if ("string" == typeof this._options.order) {
-            this._options.order = this._options.order.split(',')
+    private _parse_order(ostr?: string | string[]) {
+        if (!ostr) { ostr = this._options.order }
+        var order: any[] = [];
+        if ("string" == typeof ostr) {
+            this._options.order = ostr.split(',')
         }
-        if (this._options.order instanceof Array) {
-            _.forOwn(this._options.order, (v: any, k: any) => {
+        if (ostr instanceof Array) {
+            for (let v of ostr) {
                 let p = v.trim().split(' ');
                 if (p.length > 1 && !['desc', 'asc'].includes(p[1].toLowerCase())) {
                     throw new Error('Error OrderBy Rule: ' + p[1])
                 }
-                if (!/^[A-Za-z0-9_]{1,}$/.test(p[0])) {
+                if (!/^`{0,1}[A-Za-z0-9_]{1,}`{0,1}$/.test(p[0])) {
                     throw new Error('Error OrderBy Field: ' + p[0])
                 }
                 order.push(p)
                 //TODO 检查是否在这个表中，以及是否允许参与查询
-            })
+            }
         }
         return order;
     }
