@@ -181,7 +181,7 @@ export default class Model {
      * @returns {{} | any}
      * @private
      */
-    private async _parse_where() {
+    async _parse_where() {
         let w = Model.parseWhere(this._options.where);
         if (this._ctx.Secret && this._ctx.Secret.AID) {
             let fields = await this.getDbTableFields()
@@ -202,7 +202,7 @@ export default class Model {
      * @returns {Array}
      * @private
      */
-    private _parse_fields() {
+    _parse_fields() {
         let rs = []
         if (this._options.fields.length == 0) {
             rs = this._ctx.config.getDbTableFields(this._table_name)
@@ -219,7 +219,7 @@ export default class Model {
     /**
      * 解析排序Sort数据
      */
-    private _parse_order(ostr?: string | string[]) {
+    _parse_order(ostr?: string | string[]) {
         if (!ostr) { ostr = this._options.order }
         var order: any[] = [];
         if ("string" == typeof ostr) {
@@ -245,7 +245,7 @@ export default class Model {
      * @returns {{}}
      * @private
      */
-    private async _parse_config() {
+    async _parse_config() {
         let config: any = { raw: true };
         config['attributes'] = this._parse_fields();
         config['where'] = await this._parse_where();
