@@ -456,7 +456,7 @@ export default class Model {
      * 发起查询请求
      * @returns {Bluebird<any[]>}
      */
-    public async select<T>(data: { getWhere?: boolean } = {}): Promise<T[]> {
+    public async select(data: { getWhere?: boolean } = {}): Promise<any[]> {
         await hook.emit(ModelHooks.Select, HookWhen.Before, this, { args: arguments, data: {} })
         let d: any = await new Promise(async (s, j) => {
             this._operate = Operate.Select
@@ -584,9 +584,9 @@ export default class Model {
     /**
      * 查找一个
      */
-    public async find() {
+    public async find(): Promise<any> {
         this._operate = Operate.Select
-        let d = await this.limit(1).select()
+        let d: any = await this.limit(1).select()
         this._clean();
         return d[0]
     }
@@ -632,7 +632,7 @@ export default class Model {
      * 支持selectAndCount
      * @returns {Promise<{count; rows: any[]}>}
      */
-    public async selectAndCount<T>(): Promise<{ count: number, rows: T[] }> {
+    public async selectAndCount(): Promise<{ count: number, rows: any[] }> {
         this._operate = Operate.Select
         let d = await (await this.getModel()).findAndCountAll(await this._parse_config())
         // let data: any[] = [];
@@ -842,7 +842,7 @@ export default class Model {
         }
         let rs: any = [];
         if (Fields.length > 0) {
-            let d = await this.fields(Fields).select<T>()
+            let d = await this.fields(Fields).select()
             this._clean();
             var pk = Fields[0];
             if (d.length > 0) {
