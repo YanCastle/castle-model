@@ -280,6 +280,13 @@ export default class Model {
         return Object.keys(await this._ctx.config.getDbTableFields(table || this._table_name))
     }
     /**
+     * 读取字段配置
+     * @param table 
+     */
+    async getDbTableFieldsConfig(table: string = ""): Promise<{ [index: string]: { type: string | typeof DbDataType, [index: string]: any } }> {
+        return await this._ctx.config.getDbTableFields(table || this._table_name)
+    }
+    /**
      * 设置表的字段，默认读取所有的
      * @param fields
      */
@@ -492,42 +499,55 @@ export default class Model {
         if ('object' !== typeof data) {
             throw new Error('数据错误')
         }
-        let field = await this.getDbTableFields()
+        // let field = await this.getDbTableFields()
+        let configs = await this.getDbTableFieldsConfig();
         let t = new Date
         switch (this._operate) {
             case Operate.Add:
-                if (field.includes('CTime')) {
+                if (configs.CTime) {
                     if (!data.CTime)
                         data.CTime = t;
                     if (!data.CUID)
                         data.CUID = this._ctx.UID || 0;
                 }
-                if (field.includes('UTime')) {
+                if (configs.UTime) {
                     if (!data.UTime)
                         data.UTime = new Date;
                     if (!data.UUID)
                         data.UUID = this._ctx.UID || 0;
                 }
                 delete data.DUID; delete data.DTime;
-                if (field.includes('AID') && this._ctx.Secret && this._ctx.Secret.AID) {
+                if (configs.AID && this._ctx.Secret && this._ctx.Secret.AID) {
                     if (!data.AID)
                         data.AID = this._ctx.Secret.AID
                 }
-                if (field.includes('GID') && this._ctx.Secret && this._ctx.Secret.GID) {
+                if (configs.GID && this._ctx.Secret && this._ctx.Secret.GID) {
                     if (!data.GID)
                         data.GID = this._ctx.Secret.GID
                 }
-                if (field.includes('Key') && this._ctx.Secret && this._ctx.Secret.Key) {
+                if (configs.Key && this._ctx.Secret && this._ctx.Secret.Key) {
                     if (!data.Key)
                         data.Key = this._ctx.Secret.Key
                 }
                 break;
             case Operate.Save:
-                if (field.includes('UTime')) {
+                for (let k in configs) {
+                    let x = configs[k]
+                    if (x.autoIncrement) {
+                        delete data[k];
+                        continue;
+                    }
+                    if (false === x.editAble) {
+                        delete data[k];
+                        continue;
+                    }
+                }
+                if (configs.UTime) {
                     data.UTime = new Date;
                     if (!data.UUID)
                         data.UUID = this._ctx.UID;
                 }
+                //TODO 禁止修改主键
                 delete data.CUID; delete data.CTime;
                 delete data.DUID; delete data.DTime;
                 delete data.AID;
@@ -535,7 +555,7 @@ export default class Model {
                 delete data.GID;
                 break;
             case Operate.Delete:
-                if (field.includes('DTime')) {
+                if (configs.DTime) {
                     data.DTime = new Date;
                     if (!data.DUID)
                         data.DUID = this._ctx.UID || 0;
