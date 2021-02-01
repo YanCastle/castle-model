@@ -202,15 +202,21 @@ export default class Model {
      * @returns {Array}
      * @private
      */
-    _parse_fields(fields?: string[]) {
+    async _parse_fields(fields?: string[]) {
         if (!fields) {
             fields = this._options.fields
         }
         let rs = []
         if (fields.length == 0) {
-            rs = this._ctx.config.getDbTableFields(this._table_name)
+            rs = await this.getDbTableFields()
         } else {
-            rs = fields instanceof Function ? fields(this._ctx) : fields;
+            rs = fields instanceof Function ? await fields(this._ctx) : fields;
+            /**
+             * 支持字段排除法
+             */
+            if (rs[rs.length - 1] === true) {
+                rs = _.difference(await this.getDbTableFields(), rs);
+            }
         }
         if (this._options.exclude.length > 0) {
             for (let x of this._options.exclude) {
@@ -250,8 +256,9 @@ export default class Model {
      */
     async _parse_config() {
         let config: any = { raw: true };
-        config['attributes'] = this._parse_fields();
-        config['where'] = await this._parse_where();
+        // debugger
+        config.attributes = await this._parse_fields();
+        config.where = await this._parse_where();
         if (this._options.order) {
             config['order'] = this._parse_order()
         }
@@ -264,8 +271,13 @@ export default class Model {
         if (this._options.group && this._options.group.length > 0) {
             config['group'] = this._options.group.join(',')
         }
-        if (this._operate == Operate.Select && this._options.fields.length == 0) {
-            config.fields = Object.keys(this._ctx.config.getDbTableFields(this._table_name))
+        if (this._operate == Operate.Select) {
+            let f = await this.getDbTableFields();
+            if (this._options.fields.length == 0) {
+                config.attributes = f;
+            } else {
+                config.attributes = _.intersection(f, this._options.fields)
+            }
         }
         if (this._ctx.config.transaction) {
             config.transaction = this._ctx.config.transaction;
@@ -277,14 +289,24 @@ export default class Model {
      * @param table 
      */
     async getDbTableFields(table: string = "") {
-        return Object.keys(await this._ctx.config.getDbTableFields(table || this._table_name))
+        return Object.keys(await this.getDbTableFieldsConfig(table))
     }
+    _Fields: any = {}
     /**
      * 读取字段配置
      * @param table 
      */
     async getDbTableFieldsConfig(table: string = ""): Promise<{ [index: string]: { type: string | typeof DbDataType, [index: string]: any } }> {
-        return await this._ctx.config.getDbTableFields(table || this._table_name)
+        if (table == '' || table == this._table_name) {
+            if (Object.keys(this._Fields).length > 0) {
+                return this._Fields;
+            }
+        }
+        let r = await this._ctx.config.getDbTableFields(table || this._table_name)
+        if (table == '' || table == this._table_name) {
+            this._Fields = r;
+        }
+        return r;
     }
     /**
      * 设置表的字段，默认读取所有的
