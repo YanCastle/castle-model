@@ -183,16 +183,17 @@ export default class Model {
      */
     async _parse_where() {
         let w = Model.parseWhere(this._options.where);
-        if (this._ctx.Secret && this._ctx.Secret.AID) {
+        if (this._ctx.AID) {
             let fields = await this.getDbTableFields()
             if (fields.includes('AID') && undefined === w.AID) {
-                w.AID = this._ctx.Secret.AID;
+                w.AID = this._ctx.AID;
             }
-            if (fields.includes('GID') && undefined === w.GID && this._ctx.Secret.GID > 0) {
-                w.GID = this._ctx.Secret.GID;
+            console.log('_parse_where', w, this._ctx.GID)
+            if (fields.includes('GID') && (w.GID <= 0 || w.GID === undefined) && this._ctx.GID > 0) {
+                w.GID = this._ctx.GID;
             }
-            if (fields.includes('Key') && undefined === w.Key && this._ctx.Secret.Key.length > 0) {
-                w.Key = this._ctx.Secret.Key;
+            if (fields.includes('Key') && undefined === w.Key && this._ctx.Key && this._ctx.Key.length > 0) {
+                w.Key = this._ctx.Key;
             }
         }
         return w;
@@ -258,6 +259,8 @@ export default class Model {
         let config: any = { raw: true };
         // debugger
         config.attributes = await this._parse_fields();
+
+        console.log('_parse_config', this._ctx.GID)
         config.where = await this._parse_where();
         if (this._options.order) {
             config['order'] = this._parse_order()
@@ -491,6 +494,7 @@ export default class Model {
             this._operate = Operate.Select
             let m: any = (await this.getModel());
             if (true === this._getSql) {
+                console.log('_getSql', this._ctx.GID)
                 this.page(1, 0);
                 await m.findAll(Object.assign(await this._parse_config(), {
                     raw: true,
@@ -539,17 +543,17 @@ export default class Model {
                         data.UUID = this._ctx.UID || 0;
                 }
                 delete data.DUID; delete data.DTime;
-                if (configs.AID && this._ctx.Secret && this._ctx.Secret.AID) {
+                if (configs.AID && this._ctx.AID) {
                     if (!data.AID)
-                        data.AID = this._ctx.Secret.AID
+                        data.AID = this._ctx.AID
                 }
-                if (configs.GID && this._ctx.Secret && this._ctx.Secret.GID) {
+                if (configs.GID && this._ctx.GID) {
                     if (!data.GID)
-                        data.GID = this._ctx.Secret.GID
+                        data.GID = this._ctx.GID
                 }
-                if (configs.Key && this._ctx.Secret && this._ctx.Secret.Key) {
+                if (configs.Key && this._ctx.Key) {
                     if (!data.Key)
-                        data.Key = this._ctx.Secret.Key
+                        data.Key = this._ctx.Key
                 }
                 break;
             case Operate.Save:
@@ -585,7 +589,21 @@ export default class Model {
                 delete data.CUID; delete data.CTime;
                 delete data.UUID; delete data.UTime;
                 break;
+            // case Operate.Select:
 
+            //     if (configs.AID && this._ctx.AID) {
+            //         if (!data.AID)
+            //             data.AID = this._ctx.AID
+            //     }
+            //     if (configs.GID && this._ctx.GID) {
+            //         if (!data.GID)
+            //             data.GID = this._ctx.GID
+            //     }
+            //     if (configs.Key && this._ctx.Key) {
+            //         if (!data.Key)
+            //             data.Key = this._ctx.Key
+            //     }
+            //     break;
         }
         _.forOwn(data, (v, k) => {
             if (v === undefined) {
