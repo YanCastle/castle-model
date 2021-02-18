@@ -184,16 +184,21 @@ export default class Model {
     async _parse_where() {
         let w = Model.parseWhere(this._options.where);
         if (this._ctx.AID) {
-            let fields = await this.getDbTableFields()
+            let configs = await this.getDbTableFieldsConfig()
+            let fields = Object.keys(configs)
             if (fields.includes('AID') && undefined === w.AID) {
                 w.AID = this._ctx.AID;
             }
-            console.log('_parse_where', w, this._ctx.GID)
+            // console.log('_parse_where', w, this._ctx.GID)
             if (fields.includes('GID') && (w.GID <= 0 || w.GID === undefined) && this._ctx.GID > 0) {
-                w.GID = this._ctx.GID;
+                if (!configs.GID.share) {
+                    w.GID = this._ctx.GID;
+                }
             }
             if (fields.includes('Key') && undefined === w.Key && this._ctx.Key && this._ctx.Key.length > 0) {
-                w.Key = this._ctx.Key;
+                if (!configs.Key.share) {
+                    w.Key = this._ctx.Key;
+                }
             }
         }
         return w;
@@ -260,7 +265,7 @@ export default class Model {
         // debugger
         config.attributes = await this._parse_fields();
 
-        console.log('_parse_config', this._ctx.GID)
+        // console.log('_parse_config', this._ctx.GID)
         config.where = await this._parse_where();
         if (this._options.order) {
             config['order'] = this._parse_order()
@@ -299,7 +304,9 @@ export default class Model {
      * 读取字段配置
      * @param table 
      */
-    async getDbTableFieldsConfig(table: string = ""): Promise<{ [index: string]: { type: string | typeof DbDataType, [index: string]: any } }> {
+    async getDbTableFieldsConfig(table: string = ""): Promise<{
+        [index: string]: { type: string | typeof DbDataType, [index: string]: any }
+    }> {
         if (table == '' || table == this._table_name) {
             if (Object.keys(this._Fields).length > 0) {
                 return this._Fields;
@@ -494,7 +501,7 @@ export default class Model {
             this._operate = Operate.Select
             let m: any = (await this.getModel());
             if (true === this._getSql) {
-                console.log('_getSql', this._ctx.GID)
+                // console.log('_getSql', this._ctx.GID)
                 this.page(1, 0);
                 await m.findAll(Object.assign(await this._parse_config(), {
                     raw: true,
