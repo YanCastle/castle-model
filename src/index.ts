@@ -578,7 +578,7 @@ export default class Model {
                 if (configs.UTime) {
                     data.UTime = new Date;
                     if (!data.UUID)
-                        data.UUID = this._ctx.UID;
+                        data.UUID = this._ctx.UID||0;
                 }
                 //TODO 禁止修改主键
                 delete data.CUID; delete data.CTime;
