@@ -532,6 +532,7 @@ export default class Model {
         if ('object' !== typeof data) {
             throw new Error('数据错误')
         }
+        data = _.cloneDeep(data)
         // let field = await this.getDbTableFields()
         let configs = await this.getDbTableFieldsConfig();
         let t = new Date
@@ -549,7 +550,9 @@ export default class Model {
                     if (!data.UUID)
                         data.UUID = this._ctx.UID || 0;
                 }
-                delete data.DUID; delete data.DTime;
+                if (configs.DUID && configs.DTime) {
+                    delete data.DUID; delete data.DTime;
+                }
                 if (configs.AID && this._ctx.AID) {
                     if (!data.AID)
                         data.AID = this._ctx.AID
@@ -578,11 +581,13 @@ export default class Model {
                 if (configs.UTime) {
                     data.UTime = new Date;
                     if (!data.UUID)
-                        data.UUID = this._ctx.UID||0;
+                        data.UUID = this._ctx.UID || 0;
                 }
                 //TODO 禁止修改主键
                 delete data.CUID; delete data.CTime;
-                delete data.DUID; delete data.DTime;
+                if (configs.DUID && configs.DTime) {
+                    delete data.DUID; delete data.DTime;
+                }
                 delete data.AID;
                 delete data.Key;
                 delete data.GID;
