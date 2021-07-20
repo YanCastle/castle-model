@@ -732,6 +732,7 @@ export default class Model {
      * @returns {Model.page}
      */
     public page(p: number, n: number): this {
+        if (p <= 0) { p = 1 }
         this._options.limit = Number(n);
         this._options.offset = (p - 1) * n;
         return this;
