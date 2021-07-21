@@ -630,7 +630,7 @@ export default class Model {
      */
     public async add<T>(data: Object): Promise<T | any> {
         this._operate = Operate.Add
-        await this.fixField(data);
+        data = await this.fixField(data);
         await hook.emit(ModelHooks.Add, HookWhen.Before, this, { args: arguments, data: {} })
         let d = await (await this.getModel()).create(data, this.changeOptions).catch((e: ExecException) => {
             if (e.message === 'Validation error') {
@@ -669,8 +669,8 @@ export default class Model {
      */
     public async addAll<T>(data: T[]): Promise<T[]> {
         this._operate = Operate.Add
-        for (let x of data) {
-            await this.fixField(x);
+        for (let k in data) {
+            data[k] = await this.fixField(data[k]);
         }
         await hook.emit(ModelHooks.AddAll, HookWhen.Before, this, { args: arguments, data: {} })
         let d = await (await this.getModel()).bulkCreate(data, Object.assign({
