@@ -111,7 +111,13 @@ export default class Model {
         this._getSql = sql;
         return this;
     }
-    public static parseWhere(where: Object) {
+    /**
+     * where结构解析
+     * @param where 
+     * @param i 
+     * @returns 
+     */
+    public static parseWhere(where: Object, i = 0) {
         if (env.DB_DIALET == 'tablestore') {
             return where;
         }
@@ -119,20 +125,43 @@ export default class Model {
         _.forOwn(where, (v, k) => {
             if (v instanceof Array) {
                 if (k.substr(0, 1) == '$') {
+                    //第一层可能是$or,$and等
                     w[Fn(...[k.substr(0, 1), ...v])]
-                } else {
-                    w[Op[k]] = v;
-                }
-                delete w[k]
+                    delete w[k]
+                } else
+                    if (i === 0 && !Op[k]) {
+                        //判断k值的存在性
+                        for (let x of v) {
+                            if (['string', 'number'].includes(typeof x)) {
+
+                            } else {
+                                throw new Error(`Invalid Where ${k} Value`)
+                            }
+                        }
+                        switch (v.length) {
+                            case 0:
+                                throw new Error(`Where ${k} IN Empty Value`)
+                                break
+                            case 1:
+                                w[k] = v[0]
+                                break
+                            default:
+                                w[k] = { [Sequelize.Op.in]: v }
+
+                        }
+                    } else if (Op[k]) {
+                        w[Op[k]] = v;
+                        delete w[k]
+                    }
             } else if (Op[k]) {
                 if ('object' == typeof v) {
-                    w[Op[k]] = Model.parseWhere(v);
+                    w[Op[k]] = Model.parseWhere(v, i + 1);
                 }
                 w[Op[k]] = v;
                 delete w[k]
             }
             else if ('object' == typeof v) {
-                w[k] = Model.parseWhere(v);
+                w[k] = Model.parseWhere(v, i + 1);
             } else {
                 if (/^`{0,1}[A-Za-z_][A-Za-z0-9_]{0,}`{0,1}$/.test(k)) {
                     w[k] = v;
