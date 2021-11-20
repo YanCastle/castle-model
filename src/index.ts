@@ -135,12 +135,13 @@ export default class Model {
                             if (['string', 'number'].includes(typeof x)) {
 
                             } else {
-                                throw new Error(`Invalid Where ${k} Value`)
+                                console.warn(new Error(`Invalid Where ${k} Value`))
                             }
                         }
                         switch (v.length) {
                             case 0:
-                                throw new Error(`Where ${k} IN Empty Value`)
+                                w[k] = null
+                                console.warn(new Error(`Where ${k} IN Empty Value`))
                                 break
                             case 1:
                                 w[k] = v[0]
