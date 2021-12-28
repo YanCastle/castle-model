@@ -222,7 +222,7 @@ export default class Model {
             // console.log('_parse_where', w, this._ctx.GID)
             if (fields.includes('GID') && (w.GID <= 0 || w.GID === undefined) && this._ctx.GID > 0) {
                 if (!configs.GID.share) {
-                    w.GID = this._ctx.GID;
+                    w.GID = { [DbOp.$in]: [0, this._ctx.GID] }
                 }
             }
             if (fields.includes('Key') && undefined === w.Key && this._ctx.Key && this._ctx.Key.length > 0) {
